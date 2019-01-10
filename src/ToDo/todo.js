@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "./todo.css";
 import PropTypes from "prop-types";
 import { inject, observer } from "mobx-react";
-import DevTools from "mobx-react-devtools";
+// import DevTools from "mobx-react-devtools";
 @inject("Store")
 @observer
 class ToDo extends Component {
@@ -235,9 +235,9 @@ class ToDo extends Component {
             ""
           )}
         </div>
-        <div className="devtools">
+        {/* <div className="devtools">
           <DevTools />
-        </div>
+        </div> */}
       </section>
     );
   }
