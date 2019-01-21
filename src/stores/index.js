@@ -6,7 +6,6 @@ class Store {
     toBeDone: [],
     originalList: [],
     taskList: [],
-    footerFlag: "",
     toggleAll: false,
     activeBtn: "all"
   };
@@ -39,11 +38,6 @@ class Store {
     this.toDoState.originalList = this.toDoState.originalList.filter(
       elem => elem.completed !== true
     );
-  };
-
-  @action("check for presence of footer")
-  checkFooterFlag = val => {
-    this.toDoState.footerFlag = val !== null ? val : "";
   };
 
   @action("toggle task status")

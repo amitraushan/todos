@@ -17,23 +17,19 @@ class ToDo extends Component {
   }
 
   addToTable(e) {
-    const { updateListOnAdd, checkFooterFlag } = this.props.Store;
+    const { updateListOnAdd } = this.props.Store;
     if (e.keyCode === 13 && e.target.value) {
       let obj = { value: e.target.value, completed: false };
       updateListOnAdd(obj);
       e.target.value = "";
-      checkFooterFlag(1);
       this.changeToggleAllStatus();
     }
   }
 
   removeItem(index) {
-    const { toDoState, checkFooterFlag, updateListOnRemove } = this.props.Store;
+    const { updateListOnRemove } = this.props.Store;
     updateListOnRemove(index);
 
-    if (toDoState.originalList.length === 0) {
-      checkFooterFlag("");
-    }
     this.changeToggleAllStatus();
   }
 
@@ -84,13 +80,11 @@ class ToDo extends Component {
   clearCompleted() {
     const {
       toDoState,
-      checkFooterFlag,
       toggleAllStatus,
       removeCompletedTask
     } = this.props.Store;
     removeCompletedTask();
     if (!toDoState.toBeDone.length) {
-      checkFooterFlag("");
       toggleAllStatus(false);
     }
   }
@@ -111,10 +105,6 @@ class ToDo extends Component {
       "toDoList",
       JSON.stringify(toDoState.originalList)
     );
-    window.localStorage.setItem(
-      "footerFlag",
-      JSON.stringify(toDoState.footerFlag)
-    );
     // console.log(
     //   "originalList => ",
     //   toDoState.originalList.map(item => item.completed)
@@ -127,12 +117,10 @@ class ToDo extends Component {
     // console.log("taskList => ", toDoState.taskList.map(item => item.completed));
   }
   componentDidMount() {
-    const { updateAll, updateOriginalList, checkFooterFlag } = this.props.Store;
+    const { updateAll, updateOriginalList } = this.props.Store;
     const newList = JSON.parse(window.localStorage.getItem("toDoList"));
-    const footerStatus = JSON.parse(window.localStorage.getItem("footerFlag"));
     updateOriginalList(newList);
     updateAll();
-    checkFooterFlag(footerStatus);
     this.changeToggleAllStatus();
   }
 
@@ -150,7 +138,7 @@ class ToDo extends Component {
               onKeyDown={this.addToTable}
             />
           </header>
-          {toDoState.footerFlag ? (
+          {toDoState.originalList.length ? (
             <section className="main">
               <input
                 type="checkbox"
@@ -191,7 +179,7 @@ class ToDo extends Component {
           ) : (
             ""
           )}
-          {toDoState.footerFlag ? (
+          {toDoState.originalList.length ? (
             <footer className="footer">
               <div className="items-left">
                 {toDoState.toBeDone.length} items left
