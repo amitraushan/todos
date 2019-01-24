@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "./todo.css";
 import PropTypes from "prop-types";
 import { inject, observer } from "mobx-react";
-// import DevTools from "mobx-react-devtools";
+import DevTools from "mobx-react-devtools";
 @inject("Store")
 @observer
 class ToDo extends Component {
@@ -13,120 +13,71 @@ class ToDo extends Component {
     this.showActive = this.showActive.bind(this);
     this.showCompleted = this.showCompleted.bind(this);
     this.clearCompleted = this.clearCompleted.bind(this);
-    this.toggleAll = this.toggleAll.bind(this);
   }
 
   addToTable(e) {
-    const { updateListOnAdd } = this.props.Store;
+    const { addToDo } = this.props.Store;
     if (e.keyCode === 13 && e.target.value) {
       let obj = { value: e.target.value, completed: false };
-      updateListOnAdd(obj);
+      addToDo(obj);
       e.target.value = "";
-      this.changeToggleAllStatus();
     }
+  }
+
+  toggleIndividualTodo(item, index) {
+    this.props.Store.toggleToDo(index);
   }
 
   removeItem(index) {
-    const { updateListOnRemove } = this.props.Store;
-    updateListOnRemove(index);
-
-    this.changeToggleAllStatus();
+    this.props.Store.removeToDo(index);
   }
 
-  toggleTaskStatus(item, index) {
-    const { toggleStatus, updateAll } = this.props.Store;
-    toggleStatus(index);
-    updateAll();
-    this.changeToggleAllStatus();
-  }
-
-  changeToggleAllStatus() {
-    const { toDoState, toggleAllStatus } = this.props.Store;
-    if (toDoState.completed.length === toDoState.originalList.length) {
-      toggleAllStatus(true);
-    } else {
-      toggleAllStatus(false);
-    }
-  }
-
-  toggleAll() {
-    console.log("toggle All");
-    const { toDoState, updateAll, toggleAllStatus } = this.props.Store;
-    toggleAllStatus(!toDoState.toggleAll);
-    toDoState.originalList.map(elem =>
-      toDoState.toggleAll ? (elem.completed = true) : (elem.completed = false)
-    );
-    updateAll();
+  toggleAll(status) {
+    this.props.Store.toggleAllStatus(status);
   }
 
   showAll() {
-    console.log("showAll");
-    const { changeActiveBtn } = this.props.Store;
-    changeActiveBtn("all");
+    this.props.Store.changeActiveBtn("all");
   }
 
   showActive() {
-    console.log("showActive");
-    const { changeActiveBtn } = this.props.Store;
-    changeActiveBtn("active");
+    this.props.Store.changeActiveBtn("active");
   }
 
   showCompleted() {
-    console.log("showCompleted");
-    const { changeActiveBtn } = this.props.Store;
-    changeActiveBtn("completed");
+    this.props.Store.changeActiveBtn("completed");
   }
 
   clearCompleted() {
-    const {
-      toDoState,
-      toggleAllStatus,
-      removeCompletedTask
-    } = this.props.Store;
-    removeCompletedTask();
-    if (!toDoState.toBeDone.length) {
-      toggleAllStatus(false);
-    }
+    this.props.Store.removeCompletedToDos();
   }
 
   componentDidUpdate() {
-    // console.log("prevProps =>", prevProps.Store.toDoState.originalList);
-    // console.log("Props =>", this.props.Store.toDoState.originalList);
-
-    const { toDoState, updateTaskList } = this.props.Store;
-    if (toDoState.activeBtn === "completed") {
-      updateTaskList(toDoState.completed);
-    } else if (toDoState.activeBtn === "active") {
-      updateTaskList(toDoState.toBeDone);
-    } else {
-      updateTaskList(toDoState.originalList);
-    }
-    window.localStorage.setItem(
-      "toDoList",
-      JSON.stringify(toDoState.originalList)
-    );
-    // console.log(
-    //   "originalList => ",
-    //   toDoState.originalList.map(item => item.completed)
-    // );
-    // console.log(
-    //   "completed =>",
-    //   toDoState.completed.map(item => item.completed)
-    // );
-    // console.log("toBeDone =>", toDoState.toBeDone.map(item => item.completed));
-    // console.log("taskList => ", toDoState.taskList.map(item => item.completed));
+    const { toDoState } = this.props.Store;
+    window.localStorage.setItem("toDoList", JSON.stringify(toDoState.todos));
   }
   componentDidMount() {
-    const { updateAll, updateOriginalList } = this.props.Store;
     const newList = JSON.parse(window.localStorage.getItem("toDoList"));
-    updateOriginalList(newList);
-    updateAll();
-    this.changeToggleAllStatus();
+    this.props.Store.getTodosFromLocalStorage(newList);
+  }
+  getvisibleTodos() {
+    const { activeBtn, todos } = this.props.Store.toDoState;
+    switch (activeBtn) {
+      case "completed":
+        return todos.filter(todo => todo.completed);
+      case "active":
+        return todos.filter(todo => !todo.completed);
+      default:
+        return todos;
+    }
   }
 
   render() {
     const { toDoState } = this.props.Store;
-
+    const visibleTodos = this.getvisibleTodos();
+    const isToggleALLChecked =
+      toDoState.todos.length ===
+      toDoState.todos.filter(todo => todo.completed).length;
     return (
       <section className="App-page">
         <h1>todos</h1>
@@ -138,25 +89,25 @@ class ToDo extends Component {
               onKeyDown={this.addToTable}
             />
           </header>
-          {toDoState.originalList.length ? (
+          {toDoState.todos.length ? (
             <section className="main">
               <input
                 type="checkbox"
                 id="toggle-all"
                 className="toggle-all"
-                checked={toDoState.toggleAll}
-                onChange={this.toggleAll}
+                checked={isToggleALLChecked}
+                onChange={() => this.toggleAll(isToggleALLChecked)}
               />
               <label htmlFor="toggle-all" />
               <ul className="todo-list">
-                {toDoState.taskList.map((item, index) => (
+                {visibleTodos.map((item, index) => (
                   <li key={index} className="view">
                     <input
                       type="checkbox"
                       id={`task-${index}`}
                       className="toggle"
                       checked={item.completed}
-                      onChange={() => this.toggleTaskStatus(item, index)}
+                      onChange={() => this.toggleIndividualTodo(item, index)}
                     />
                     <label
                       htmlFor={`task-${index}`}
@@ -179,10 +130,11 @@ class ToDo extends Component {
           ) : (
             ""
           )}
-          {toDoState.originalList.length ? (
+          {toDoState.todos.length ? (
             <footer className="footer">
               <div className="items-left">
-                {toDoState.toBeDone.length} items left
+                {toDoState.todos.filter(todo => !todo.completed).length} items
+                left
               </div>
               <button
                 className={`${
@@ -208,7 +160,7 @@ class ToDo extends Component {
               >
                 Completed
               </button>
-              {toDoState.completed.length !== 0 ? (
+              {toDoState.todos.filter(todo => todo.completed).length ? (
                 <button
                   className="clear-completed"
                   onClick={this.clearCompleted}
@@ -223,9 +175,9 @@ class ToDo extends Component {
             ""
           )}
         </div>
-        {/* <div className="devtools">
+        <div className="devtools">
           <DevTools />
-        </div> */}
+        </div>
       </section>
     );
   }
