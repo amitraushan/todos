@@ -13,23 +13,25 @@ class ToDo extends Component {
     this.showActive = this.showActive.bind(this);
     this.showCompleted = this.showCompleted.bind(this);
     this.clearCompleted = this.clearCompleted.bind(this);
+    this.count = 0;
   }
 
   addToTable(e) {
     const { addToDo } = this.props.Store;
     if (e.keyCode === 13 && e.target.value) {
-      let obj = { value: e.target.value, completed: false };
+      let obj = { value: e.target.value, completed: false, id: (this.count+Math.random())};
       addToDo(obj);
       e.target.value = "";
+      this.count++;
     }
   }
 
-  toggleIndividualTodo(item, index) {
-    this.props.Store.toggleToDo(index);
+  toggleIndividualTodo(item) {
+    this.props.Store.toggleToDo(item.id);
   }
 
-  removeItem(index) {
-    this.props.Store.removeToDo(index);
+  removeItem(id) {
+    this.props.Store.removeToDo(id);
   }
 
   toggleAll(status) {
@@ -104,13 +106,13 @@ class ToDo extends Component {
                   <li key={index} className="view">
                     <input
                       type="checkbox"
-                      id={`task-${index}`}
+                      id={`task-${item.id}`}
                       className="toggle"
                       checked={item.completed}
-                      onChange={() => this.toggleIndividualTodo(item, index)}
+                      onChange={() => this.toggleIndividualTodo(item)}
                     />
                     <label
-                      htmlFor={`task-${index}`}
+                      htmlFor={`task-${item.id}`}
                       className={`${
                         item.completed ? `completed` : "not-completed"
                       } task-label`}
@@ -119,7 +121,7 @@ class ToDo extends Component {
                     </label>
                     <button
                       className="destroy"
-                      onClick={() => this.removeItem(index)}
+                      onClick={() => this.removeItem(item.id)}
                     >
                       X
                     </button>

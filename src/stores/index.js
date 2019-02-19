@@ -11,15 +11,15 @@ class Store {
   };
 
   @action("TOGGLE_TODO")
-  toggleToDo = index => {
-    this.toDoState.todos.map((elem, pos) =>
-      pos === index ? (elem.completed = !elem.completed) : elem.completed
+  toggleToDo = id => {
+    this.toDoState.todos.map((elem) =>
+      elem.id === id ? (elem.completed = !elem.completed) : elem.completed
     );
   };
   @action("REMOVE_TODO")
-  removeToDo = index => {
+  removeToDo = id => {
     this.toDoState.todos = this.toDoState.todos.filter(
-      (todo, pos) => pos !== index
+      (todo) => todo.id !== id
     );
   };
 
