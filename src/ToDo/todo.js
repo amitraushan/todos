@@ -60,7 +60,10 @@ class ToDo extends Component {
   }
   componentDidMount() {
     const newList = JSON.parse(window.localStorage.getItem("toDoList"));
-    this.props.Store.getTodosFromLocalStorage(newList);
+    console.log('newList===>', newList);
+    if(newList) {
+      this.props.Store.getTodosFromLocalStorage(newList);
+    }
   }
   getvisibleTodos() {
     const { activeBtn, todos } = this.props.Store.toDoState;
